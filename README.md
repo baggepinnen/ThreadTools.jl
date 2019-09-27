@@ -32,22 +32,27 @@ function withlock(f, l::Base.AbstractLock)
 ```julia
 using ThreadTools
 
+julia> l = SpinLock();
 julia> times = [];
 julia> @spawnatmost 3 for i = 1:10 # This will use only three parallel threads, even if more are avilable
-           push!(times, time())
-           println(i)
-           sleep(1)
+            withlock(l) do # We protect the access to the array using a lock
+                push!(times, time())
+            end
+            println(i)
+            sleep(1)
        end
 
-julia> round.(diff(times), digits=3)
-7-element Array{Float64,1}:
- 1.002
- 0.0  
- 0.0  
- 1.002
- 0.0  
- 0.0  
- 1.002
+julia> round.(diff(times), digits=2)
+9-element Array{Float64,1}:
+    0.0
+    0.0
+    1.0
+    0.0
+    0.0
+    1.0
+    0.0
+    0.0
+    1.0
 
 julia> tmap(_->threadid(), 1:5) # A threaded version of map
 5-element Array{Int64,1}:
@@ -70,7 +75,6 @@ julia> tmap(_->threadid(), 1:5) # A threaded version of map
   0.0
   0.3
 
-julia> l = SpinLock();
 julia> a = [0];
 julia> @threads for i = 1:10000 # If we protect the access to a using a lock, this works as expected
            withlock(l) do
