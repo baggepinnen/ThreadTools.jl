@@ -2,37 +2,33 @@
 [![codecov](https://codecov.io/gh/baggepinnen/ThreadTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/baggepinnen/ThreadTools.jl)
 
 # ThreadTools
-This package implements some utilities for using threads in Julia v1.3.
+This package implements some utilities for using threads in Julia v1.3+
 
 The utilities provided are:
+
 ```julia
-"""
-    @spawnatmost n for-loop
-
-Spawn at most `n` threads to carry out for-loop
-"""
-macro spawnatmost(n, ex)
-
-"""
-    tmap(f, args...)
-    tmap(f, nthreads::Int,args...)
-
-Threaded map. The optional argument `nthreads` limits the number of threads used in parallel.
-"""
-function tmap(f,nt::Int,args...)
-
-"""
-     withlock(f, l::AbstractLock)
-Executes Function `f` with a call to `lock` before and `unlock` after. The lock is unlocked even if `f` throws an exception.
-"""
-function withlock(f, l::Base.AbstractLock)
-
-"""
-    @withlock(lock, ex)
-Places calss to `lock` and `unlock` around an expression. This macro does not unlock the lock if the expression throws and exception. See also Function `withlock`
-"""
-macro withlock(l, ex)
+@spawnatmost n for i in ...
 ```
+Spawn at most `n` threads to carry out for-loop
+
+```julia
+tmap(f, args...)
+tmap(f, nthreads::Int, args...)
+```
+Threaded map. The optional argument `nthreads` limits the number of threads used in parallel.
+
+```julia
+withlock(f, l::AbstractLock)
+ ```
+Executes function `f` with a call to `lock` before and `unlock` after. The lock is unlocked even if `f` throws an exception.
+
+```julia
+@withlock lock ex
+```
+Places calls to `lock` and `unlock` around an expression. This macro does not unlock the lock if the expression throws and exception.
+
+
+The tools to limit the number of threads used are useful when doing, e.g., threaded IO, where the disk might get overloaded if you try to access it from too many threads at the same time.
 
 # Examples
 ```julia
@@ -100,7 +96,7 @@ false
 
 julia> a = [0];
 julia> @threads for i = 1:10000
-           ThreadTools.@withlock l (a[] += 1) # The locking mechanism also comes as a macro
+           @withlock l (a[] += 1) # The locking mechanism also comes as a macro
        end
 julia> a[] == 10000
 true
