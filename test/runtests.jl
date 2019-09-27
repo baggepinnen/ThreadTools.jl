@@ -42,4 +42,10 @@ using ThreadTools, Test, Base.Threads
     end
     @test a[] == 10000
 
+    a = [0]
+    @threads for i = 1:10000
+        ThreadTools.@withlock l (a[] += 1)
+    end
+    @test a[] == 10000
+
 end

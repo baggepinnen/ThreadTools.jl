@@ -26,6 +26,12 @@ function tmap(f,nt::Int,args...)
 Executes Function `f` with a call to `lock` before and `unlock` after. The lock is unlocked even if `f` throws an exception.
 """
 function withlock(f, l::Base.AbstractLock)
+
+"""
+    @withlock(lock, ex)
+Places calss to `lock` and `unlock` around an expression. This macro does not unlock the lock if the expression throws and exception. See also Function `withlock`
+"""
+macro withlock(l, ex)
 ```
 
 # Examples
@@ -91,4 +97,11 @@ julia> @threads for i = 1:10000 # If we do not protect access, we get a nondeter
        end
 julia> a[] == 10000
 false
+
+julia> a = [0];
+julia> @threads for i = 1:10000
+           ThreadTools.@withlock l (a[] += 1) # The locking mechanism also comes as a macro
+       end
+julia> a[] == 10000
+true
 ```

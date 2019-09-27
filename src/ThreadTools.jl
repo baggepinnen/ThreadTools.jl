@@ -2,7 +2,7 @@ module ThreadTools
 
 using Base.Threads
 
-export @spawnatmost, tmap, withlock
+export @spawnatmost, tmap, withlock, @withlock
 
 export @threads, SpinLock, nthreads, @spawn, threadid
 
@@ -59,6 +59,10 @@ function tmap(f,args...)
 end
 
 
+"""
+    @withlock(lock, ex)
+Places calss to `lock` and `unlock` around an expression. This macro does not unlock the lock if the expression throws and exception. See also Function `withlock`
+"""
 macro withlock(l, ex)
     quote
         lock($(esc(l)))
