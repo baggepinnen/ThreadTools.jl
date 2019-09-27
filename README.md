@@ -88,4 +88,3 @@ julia> @threads for i = 1:10000 # If we do not protect access, we get a nondeter
 julia> a[] == 10000
 false
 ```
-# ThreadTools.jl
