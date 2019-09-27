@@ -20,7 +20,7 @@ using ThreadTools, Test, Base.Threads
         sleep(1.1)
     end
     @show round.(diff(times), digits=2)
-    @test (nthreads() > 1 && all(<(1), sort(diff(times))[1:4])) || (nthreads() == 1 && all(>(1), sort(diff(times))[1:4]))
+    @test all(<(1), sort(diff(times))[1:4])
     @test all(>(1), sort(diff(times))[6:8])
 
     @test tmap(identity, 1:10) == 1:10
@@ -31,9 +31,9 @@ using ThreadTools, Test, Base.Threads
 
     times = tmap(_->(t=time();sleep(1.1);t), 2, 1:10)
     @show round.(diff(times), digits=2)
-    @test (nthreads() > 1 && all(<(1), sort(diff(times))[1:4])) || (nthreads() == 1 && all(>(1), sort(diff(times))[1:4]))
+    @test all(<(1), sort(diff(times))[1:4])
 
-    
+
     a = [0]
     @threads for i = 1:10000
         withlock(l) do
