@@ -39,7 +39,7 @@ Threaded map. The optional argument `nthreads` limits the number of threads used
 """
 function tmap(f,nt::Int,args...)
     sem = Base.Semaphore(nt)
-    results = map(args...) do args
+    results = map(args...) do (args...)
         @async begin
             Base.acquire(sem)
             rf = Threads.@spawn f(args...)
