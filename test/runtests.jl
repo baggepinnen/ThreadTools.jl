@@ -26,6 +26,12 @@ using ThreadTools, Test, Base.Threads
     @test tmap(identity, 1:10) == 1:10
     @test tmap(identity, 2, 1:10) == 1:10
 
+    @test tmap(identity, enumerate(1:10)) == collect(zip(1:10,1:10))
+    @test tmap(identity, 2, enumerate(1:10)) == collect(zip(1:10,1:10))
+
+    @test tmap(+, 1:10, 21:30) == (1:10) .+ (21:30)
+    @test tmap(+, 2, 1:10, 21:30) == (1:10) .+ (21:30)
+
     @test tmap(identity, 1:100_000) == 1:100_000
     @test tmap(identity, 2, 1:100_000) == 1:100_000
 
