@@ -101,3 +101,45 @@ julia> @threads for i = 1:10000
 julia> a[] == 10000
 true
 ```
+
+# Benchmark
+All benchmarks are done on a machine with 6 physical cores. The following function will be used for benchmarking
+```julia
+function fib(n)
+    if n <= 1 return 1 end
+    return fib(n - 1) + fib(n - 2)
+end
+```
+## Light workload
+`fib(30)` 720 times
+```julia
+workload = fill(20, factorial(6))
+times = map(1:6) do nt
+    nt == 1 && return @belapsed map(fib, workload)
+    @belapsed tmap(fib, $nt, workload)
+end
+t720 = @belapsed tmap(fib, workload)
+plot(1:6, times, xlabel="Number of threads", ylabel="Time [s]")
+hline!([t720], label="720 tasks", ylims=(0,Inf))
+
+```
+![window](figs/light.svg)
+
+Conclusion: for light loads, the overhead is large. You may want to consider [KissThreading.jl](https://github.com/mohamed82008/KissThreading.jl) for a more advanced approach.
+
+## Heavy workload
+`fib(30)` 720 times
+```julia
+workload = fill(30, factorial(6))
+times = map(1:6) do nt
+    nt == 1 && return @belapsed map(fib, workload)
+    @belapsed tmap(fib, $nt, workload)
+end
+t720 = @belapsed tmap(fib, workload)
+plot(1:6, times, xlabel="Number of threads", ylabel="Time [s]")
+hline!([t720], label="720 tasks", ylims=(0,Inf))
+
+```
+![window](figs/heavy.svg)
+
+Conclusion: `tmap` is effective when the computational load is heavy.
