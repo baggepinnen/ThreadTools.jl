@@ -35,6 +35,9 @@ using ThreadTools, Test, Base.Threads
     @test tmap(identity, 1:100_000) == 1:100_000
     @test tmap(identity, 2, 1:100_000) == 1:100_000
 
+    @test tmap1(identity, 1:100_000) == 1:100_000
+    @test tmap1(identity, 2, 1:100_000) == 1:100_000
+
     times = tmap(_->(t=time();sleep(1.1);t), 2, 1:10)
     @show round.(diff(times), digits=2)
     @test all(<(1), sort(diff(times))[1:4])

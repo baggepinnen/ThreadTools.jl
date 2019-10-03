@@ -14,8 +14,11 @@ Spawn at most `n` threads to carry out for-loop
 ```julia
 tmap(f, args...)
 tmap(f, nthreads::Int, args...)
+tmap1(f, args...)
+tmap1(f, nthreads::Int,args...)
 ```
 Threaded map. The optional argument `nthreads` limits the number of threads used in parallel.
+`tmap1` is the same as `tmap`, but falls back to a regular `map` if julia only has access to one thread.
 
 ```julia
 withlock(f, l::AbstractLock)
@@ -111,7 +114,7 @@ function fib(n)
 end
 ```
 ## Light workload
-`fib(30)` 720 times
+`fib(20)` 720 times
 ```julia
 workload = fill(20, factorial(6))
 times = map(1:6) do nt

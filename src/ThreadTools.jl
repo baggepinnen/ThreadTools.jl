@@ -2,7 +2,7 @@ module ThreadTools
 
 using Base.Threads
 
-export @spawnatmost, tmap, withlock, @withlock
+export @spawnatmost, tmap, tmap1, withlock, @withlock
 
 export @threads, SpinLock, nthreads, @spawn, threadid
 
@@ -34,8 +34,11 @@ end
 """
     tmap(f, args...)
     tmap(f, nthreads::Int,args...)
+    tmap1(f, args...)
+    tmap1(f, nthreads::Int,args...)
 
 Threaded map. The optional argument `nthreads` limits the number of threads used in parallel.
+`tmap1` is the same as `tmap`, but falls back to a regular `map` if julia only has access to one thread.
 """
 function tmap(f,nt::Int,args...)
     sem = Base.Semaphore(nt)
@@ -52,6 +55,29 @@ function tmap(f,nt::Int,args...)
 end
 
 function tmap(f,args...)
+    tasks = map(args...) do (args...)
+        Threads.@spawn f(args...)
+    end
+    fetch.(tasks)
+end
+
+function tmap1(f,nt::Int,args...)
+    nthreads() == 1 && (return map(f,args...))
+    sem = Base.Semaphore(nt)
+    results = map(args...) do (args...)
+        @async begin
+            Base.acquire(sem)
+            rf = Threads.@spawn f(args...)
+            r = fetch(rf)
+            Base.release(sem)
+            r
+        end
+    end
+    fetch.(results)
+end
+
+function tmap1(f,args...)
+    nthreads() == 1 && (return map(f,args...))
     tasks = map(args...) do (args...)
         Threads.@spawn f(args...)
     end
