@@ -63,25 +63,12 @@ end
 
 function tmap1(f,nt::Int,args...)
     nthreads() == 1 && (return map(f,args...))
-    sem = Base.Semaphore(nt)
-    results = map(args...) do (args...)
-        @async begin
-            Base.acquire(sem)
-            rf = Threads.@spawn f(args...)
-            r = fetch(rf)
-            Base.release(sem)
-            r
-        end
-    end
-    fetch.(results)
+    tmap(f,nt,args...)
 end
 
 function tmap1(f,args...)
     nthreads() == 1 && (return map(f,args...))
-    tasks = map(args...) do (args...)
-        Threads.@spawn f(args...)
-    end
-    fetch.(tasks)
+    tmap(f,args...)
 end
 
 

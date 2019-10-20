@@ -1,7 +1,7 @@
 name = "ThreadTools"
 uuid = "dbf13d8f-d36e-4350-8970-f3a99faba1a8"
 authors = ["Fredrik Bagge Carlson <baggepinnen@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [compat]
 julia = "1.3"
