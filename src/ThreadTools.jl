@@ -2,9 +2,9 @@ module ThreadTools
 
 using Base.Threads
 
-export @spawnatmost, tmap, tmap1, withlock, @withlock
+export @spawnatmost, tmap, tmap1
 
-export @threads, SpinLock, nthreads, @spawn, threadid
+export @threads, ReentrantLock, nthreads, @spawn, threadid
 
 """
     @spawnatmost n for-loop
@@ -33,12 +33,14 @@ end
 
 """
     tmap(f, args...)
-    tmap(f, nthreads::Int,args...)
+    tmap(f, v, T::DataType)
+    tmap(f, nthreads::Int, args...)
     tmap1(f, args...)
-    tmap1(f, nthreads::Int,args...)
+    tmap1(f, nthreads::Int, args...)
 
 Threaded map. The optional argument `nthreads` limits the number of threads used in parallel.
 `tmap1` is the same as `tmap`, but falls back to a regular `map` if julia only has access to one thread.
+If the eltype `T` of the output is specified the call will be type stable.
 """
 function tmap(f,nt::Int,args...)
     sem = Base.Semaphore(nt)
@@ -61,6 +63,17 @@ function tmap(f,args...)
     fetch.(tasks)
 end
 
+function tmap(f, v, T::DataType)
+    results = Vector{T}(undef, length(v))
+    tasks = map(v) do vi
+        Threads.@spawn f(vi)
+    end
+    for i in 1:length(tasks)
+        results[i] = fetch(tasks[i])
+    end
+    results
+end
+
 function tmap1(f,nt::Int,args...)
     nthreads() == 1 && (return map(f,args...))
     tmap(f,nt,args...)
@@ -71,31 +84,5 @@ function tmap1(f,args...)
     tmap(f,args...)
 end
 
-
-"""
-    @withlock(lock, ex)
-Places calss to `lock` and `unlock` around an expression. This macro does not unlock the lock if the expression throws and exception. See also Function `withlock`
-"""
-macro withlock(l, ex)
-    quote
-        lock($(esc(l)))
-        res = $(esc(ex))
-        unlock($(esc(l)))
-        res
-    end
-end
-
-"""
-     withlock(f, l::AbstractLock)
-Executes Function `f` with a call to `lock` before and `unlock` after. The lock is unlocked even if `f` throws an exception.
-"""
-function withlock(f, l::Base.AbstractLock)
-    lock(l)
-    try
-        return f()
-    finally
-        unlock(l)
-    end
-end
 
 end # module
