@@ -26,7 +26,7 @@ macro spawnatmost(n, ex)
             end
             push!($tasks, __t)
         end
-        Base.sync_end($tasks)
+        wait.($tasks)
     end
 end
 
