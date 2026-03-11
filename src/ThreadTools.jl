@@ -84,5 +84,20 @@ function tmap1(f,args...)
     tmap(f,args...)
 end
 
+"""
+    @maybe_threads cond ex
+
+Like `Threads.@threads` except threading can be turned on or off by `cond`
+"""
+macro maybe_threads(cond, ex)
+    return esc(:(
+        if $cond
+            Threads.@threads $ex
+        else
+            $ex
+        end
+    ))
+end
+
 
 end # module
